@@ -4,18 +4,25 @@
 
 <h1 align="center">caveman-plan</h1>
 
-<p align="center"><strong>why write many word when plan need few</strong></p>
+<p align="center"><strong>why write many word when plan, build, fix need few</strong></p>
 
 <p align="center">
-  Claude Code skill — caveman-compress your <strong>planning</strong> output only.
-  Cuts ~70% of plan tokens. Execution stays normal.
+  Claude Code skill — a caveman-compressed <strong>plan → confirm → execute → revise</strong> workflow.
+  Cuts ~70% of plan/status/chat tokens. Code stays normal.
 </p>
 
 ---
 
 ## What it does
 
-`caveman-plan` makes the agent talk like a smart caveman **only while planning** — step lists, trade-offs, task breakdowns, architecture outlines. Once you start implementing, it goes back to normal prose. Narrow scope = safe.
+`caveman-plan` runs a full build loop in caveman terseness — but never silently. Four phases:
+
+1. **PLAN** — caveman plan: numbered steps, risks, files touched.
+2. **CONFIRM** — stops and waits. Nothing runs until you reply `go`.
+3. **EXECUTE** — does the work after approval. Status updates stay terse; actual code is written normal.
+4. **REVISE** — loop for changes on a fresh build *or* an existing finished project: add feature, fix, refactor → mini re-plan → confirm → execute.
+
+Caveman style persists across every phase. Code, commits, and security warnings always stay normal prose.
 
 **Before (normal, ~70 tokens):**
 > "Sure! To add JWT authentication, I would recommend first installing the jsonwebtoken and bcrypt packages, then creating an authentication middleware that verifies the bearer token..."
@@ -73,8 +80,11 @@ Restart Claude Code (or start a new session) so the skill registers.
 
 | Action | How |
 |---|---|
+| Start a build | say "buatkan rencana X" / "plan and build X" → get plan, reply `go` to execute |
+| Approve plan | `go` / "lanjut" / "kerjakan" / "ok" |
+| Change plan | say the change → agent re-plans, asks again |
+| Revise existing project | "tambah fitur X" / "revisi" / "fix Y" → mini re-plan → `go` |
 | Force on | `/caveman-plan` |
-| Auto-trigger | say "buatkan rencana X", "plan this", "design approach", "outline steps", or enter plan mode |
 | Intensity | `/caveman-plan lite` · `full` (default) · `ultra` |
 | Off | "stop caveman" / "normal mode" |
 
