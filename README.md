@@ -2,41 +2,52 @@
   <img src="https://em-content.zobj.net/source/apple/391/rock_1faa8.png" width="100" />
 </p>
 
-<h1 align="center">caveman-plan</h1>
+<h1 align="center">batu-plan</h1>
 
 <p align="center"><strong>why write many word when plan, build, fix need few</strong></p>
 
 <p align="center">
-  Claude Code skill — a caveman-compressed <strong>plan → confirm → execute → revise</strong> workflow.
-  Cuts ~70% of plan/status/chat tokens. Code stays normal.
+  AI coding-agent skill — a terse "batu" (rock / caveman-style)
+  <strong>plan → confirm → execute → revise</strong> workflow.
 </p>
 
 ---
 
 ## What it does
 
-`caveman-plan` runs a full build loop in caveman terseness — but never silently. Four phases:
+`batu-plan` runs a full build loop in terse "batu" prose — but never silently. Four phases:
 
-1. **PLAN** — caveman plan: numbered steps, risks, files touched.
+1. **PLAN** — terse plan: numbered steps, risks, files touched.
 2. **CONFIRM** — stops and waits. Nothing runs until you reply `go`.
 3. **EXECUTE** — does the work after approval. Status updates stay terse; actual code is written normal.
 4. **REVISE** — loop for changes on a fresh build *or* an existing finished project: add feature, fix, refactor → mini re-plan → confirm → execute.
 
-Caveman style persists across every phase. Code, commits, and security warnings always stay normal prose.
+Terse style persists across every phase. Code, commits, and security warnings always stay normal prose.
 
 **Before (normal, ~70 tokens):**
 > "Sure! To add JWT authentication, I would recommend first installing the jsonwebtoken and bcrypt packages, then creating an authentication middleware that verifies the bearer token..."
 
-**After (caveman-plan, ~22 tokens):**
+**After (batu-plan, ~22 tokens):**
 > ```
 > PLAN: JWT auth
 > 1. Add `jsonwebtoken` + `bcrypt`.
 > 2. `middleware/auth.js` — verify Bearer, attach `req.user`.
 > 3. `POST /login` — sign token, 15min expiry.
 > Risk: secret leak → use env.
+> Approve? `go` or change.
 > ```
 
-Same plan. Less word. Brain still big.
+> **Scope of the saving.** batu-plan compresses **planning/status prose only** — a *minority* of a real build session's tokens. File reads, diffs, and tool I/O usually dominate, and the skill text itself adds a little input cost each session. Expect ~70% off the plan-prose slice, not off your whole bill. The win is mostly **readability + speed**; cost is a bonus.
+
+## Activation — explicit, by design
+
+batu-plan turns on **only** when you opt in:
+
+- you invoke `/batu-plan`, **or**
+- you enter plan mode, **or**
+- you explicitly ask to plan-and-build ("buatkan rencana dan kerjakan X", "plan and build X").
+
+It does **not** hijack ordinary "fix this" / "ubah" / "revisi" requests. Once active, the REVISE loop handles follow-up changes in the same session.
 
 ## Requirements
 
@@ -52,83 +63,75 @@ The installer auto-detects which agents you have and drops the skill in each one
 | Claude Code · Gemini CLI · OpenCode · Goose · Crush · Kiro · Junie · Qwen · Forge · OpenClaw · Droid | `SKILL.md` | global |
 | Windsurf · Cursor | rule file | global |
 | Codex | `AGENTS.md` block | global |
-| Cursor · Cline · Roo Code · Kilo Code · Windsurf · Copilot · Codex | rule / instructions | project (run installer inside the repo) |
+| Cursor · Cline · Roo Code · Kilo Code · Windsurf · Copilot · Codex | rule / instructions | project (`--project`) |
 
-Other agents: copy `SKILL.md` (or `rules.md`) into that agent's skills/rules location manually. Adding a new agent to the installer is one line.
-
-## Recommended companion — caveman
-
-`caveman-plan` is **self-contained** and works on its own. But it pairs best with the [**caveman**](https://github.com/JuliusBrussee/caveman) plugin, which adds:
-
-- `[CAVEMAN] ⛏` statusline badge — lifetime tokens saved
-- `/caveman-stats` — real session token usage from the Claude Code log
-- Full caveman mode for *all* replies (not just planning)
-
-The install script checks for caveman and offers to install it. Skip it if you only want planning compression.
+Adding a new agent to the installer is one line.
 
 ## Install
 
 **macOS / Linux / WSL / Git Bash:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Ahmadnidzam/caveman-plan/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Ahmadnidzam/batu-plan/main/install.sh | bash
 ```
 
 **Windows (PowerShell 5.1+):**
 
 ```powershell
-irm https://raw.githubusercontent.com/Ahmadnidzam/caveman-plan/main/install.ps1 -OutFile "$env:TEMP\cp.ps1"; & powershell -ExecutionPolicy Bypass -File "$env:TEMP\cp.ps1"
+irm https://raw.githubusercontent.com/Ahmadnidzam/batu-plan/main/install.ps1 -OutFile "$env:TEMP\bp.ps1"; & powershell -ExecutionPolicy Bypass -File "$env:TEMP\bp.ps1"
 ```
 
 **Manual:**
 
 ```bash
-mkdir -p ~/.claude/skills/caveman-plan
-cp SKILL.md ~/.claude/skills/caveman-plan/SKILL.md
+mkdir -p ~/.claude/skills/batu-plan
+cp SKILL.md ~/.claude/skills/batu-plan/SKILL.md
 ```
 
-Restart Claude Code (or start a new session) so the skill registers.
+Restart the agent (or start a new session) so the skill registers.
 
 ### Flags
 
 | Flag (bash / PowerShell) | Effect |
 |---|---|
-| `--project` / `-Project` | Also write into the **current directory's** project agent files (Cursor/Cline/Roo/Kilo/Windsurf/Copilot/Codex). Off by default — global agents only. |
-| `--local` / `-Local` | Use `./SKILL.md` + `./rules.md` from the current directory instead of downloading (skips integrity check). Only trusted dirs. |
+| `--project` / `-Project` | Also write into the **current directory's** project agent files (Cursor/Cline/Roo/Kilo/Windsurf/Copilot/Codex). Off by default — global agents only. A bare `.github`/`.cursor`/etc. dir counts as opt-in, so pass this deliberately and review what gets written before committing. |
+| `--local` / `-Local` | Use `./SKILL.md` + `./rules.md` from CWD instead of downloading (skips the integrity check). Because the content is unverified, `--local` **requires `--project`** and never writes global config. |
 
 ```bash
-# global + project agents in this repo
+# global agents only (default)
+curl -fsSL .../install.sh | bash
+# project files in this repo too
 curl -fsSL .../install.sh | bash -s -- --project
 ```
 
-### Integrity
+### Integrity — what the check does and does not cover
 
-The installer downloads `SKILL.md` + `rules.md` and **verifies their SHA-256** against hashes embedded in the script before writing anything — a tampered CDN/repo aborts the install. For a fully reproducible install, pin to a commit:
+The installer embeds the SHA-256 of `SKILL.md` + `rules.md` and verifies each download before writing. **This defends against a CDN/network tamper of those two files while `install.sh` itself is intact.** It does **not** defend against a full repository compromise — an attacker who can edit the payload can edit the embedded hashes in the same commit. The `curl | bash` entrypoint also fetches `install.sh` from `main` unpinned.
+
+For a trustworthy install: **read the script first**, then pin to a reviewed commit:
 
 ```bash
-CAVEMAN_PLAN_REF=<commit-sha> curl -fsSL https://raw.githubusercontent.com/Ahmadnidzam/caveman-plan/<commit-sha>/install.sh | bash
+BATU_PLAN_REF=<commit-sha> \
+  curl -fsSL https://raw.githubusercontent.com/Ahmadnidzam/batu-plan/<commit-sha>/install.sh | bash
 ```
 
-Always read a `curl | bash` / `irm | iex` script before running it.
+(Use the *same* `<commit-sha>` in both the URL and `BATU_PLAN_REF` so the embedded hashes and the payload match.)
 
 ## Usage
 
 | Action | How |
 |---|---|
-| Start a build | say "buatkan rencana X" / "plan and build X" → get plan, reply `go` to execute |
+| Start a build | "buatkan rencana dan kerjakan X" / "plan and build X" → get plan, reply `go` |
 | Approve plan | `go` / "lanjut" / "kerjakan" / "ok" |
 | Change plan | say the change → agent re-plans, asks again |
-| Revise existing project | "tambah fitur X" / "revisi" / "fix Y" → mini re-plan → `go` |
-| Force on | `/caveman-plan` |
-| Intensity | `/caveman-plan lite` · `full` (default) · `ultra` |
-| Off | "stop caveman" / "normal mode" |
+| Revise (after active) | "tambah fitur X" / "revisi" / "fix Y" → mini re-plan → `go` |
+| Force on | `/batu-plan` |
+| Intensity | `/batu-plan lite` · `full` (default) · `ultra` |
+| Off | "stop batu" / "normal mode" |
 
-## How it works
+## Recommended companion — caveman
 
-1. Skill file drops into `~/.claude/skills/caveman-plan/`.
-2. Description triggers the skill on planning intent.
-3. Skill tells the agent: while planning, drop articles/filler, use numbered fragment steps, keep all technical terms + code + paths exact.
-4. Auto-clarity: security warnings, irreversible-action confirmations, and ambiguous multi-step order stay in normal prose.
+batu-plan is **self-contained**. It pairs well with the [**caveman**](https://github.com/JuliusBrussee/caveman) plugin, which adds a `[CAVEMAN] ⛏` statusline badge and `/caveman-stats` (real session token usage). Optional — skip it if you only want the planning workflow.
 
 ## License
 
@@ -136,4 +139,4 @@ MIT — see [LICENSE](./LICENSE).
 
 ---
 
-<p align="center"><em>caveman-plan shrink what agent <strong>plan</strong>. <a href="https://github.com/JuliusBrussee/caveman">caveman</a> shrink what agent <strong>say</strong>.</em></p>
+<p align="center"><em>batu-plan shrink what agent <strong>plan</strong>. <a href="https://github.com/JuliusBrussee/caveman">caveman</a> shrink what agent <strong>say</strong>.</em></p>

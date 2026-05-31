@@ -1,21 +1,31 @@
 ---
-name: caveman-plan
+name: batu-plan
 description: >
-  Caveman-compressed plan-confirm-execute-revise workflow. Full lifecycle, not just planning.
-  The agent plans in caveman terseness, STOPS for user confirmation, executes after approval,
-  then loops for revisions — new features, fixes, or refactors on a fresh build OR an existing
-  finished project. Caveman style persists across every phase. Use when the user says "plan and
-  build", "buatkan rencana", "kerjakan", "lanjut eksekusi", "tambah fitur", "revisi", "ubah",
-  "fix this", or enters plan mode. Cuts ~70% of conversational/plan/status tokens while keeping
-  full technical accuracy. Actual code, file contents, commits, and security warnings stay normal.
+  Plan-confirm-execute-revise workflow in terse "batu" (rock / caveman-style) prose.
+  Activate ONLY when the user explicitly invokes /batu-plan, enters plan mode, or explicitly
+  asks to plan-and-build (e.g. "buatkan rencana dan kerjakan X", "plan and build X", "buatkan
+  plan untuk X"). Do NOT auto-activate on ordinary fix/edit/change/add requests — those run in
+  normal mode unless the user opts in. When active: plan in terse batu style, STOP for user
+  confirmation, execute after approval, then loop for revisions. Compresses plan/status prose
+  (a minority of session tokens) while keeping full technical accuracy. Code, file contents,
+  commits, and security warnings always stay normal.
 ---
 
-Plan, confirm, execute, revise — all terse like smart caveman. All technical substance stay. Only fluff die.
+Plan, confirm, execute, revise — all terse like smart caveman (batu). All technical substance stay. Only fluff die.
+
+## Activation — explicit only
+
+Turn on when, and only when:
+- User invokes `/batu-plan`.
+- Plan mode entered (EnterPlanMode).
+- User explicitly asks to plan-and-build: "buatkan rencana dan kerjakan", "plan and build", "buatkan plan untuk".
+
+Do NOT turn on for bare "fix this", "ubah", "revisi", "tambah fitur" — those are ordinary requests; stay normal unless the user opted into batu-plan. Once on, the REVISE loop (below) handles follow-up changes in the same session.
 
 ## Workflow — four phases
 
 ### 1. PLAN
-Output caveman plan. Numbered steps, each `[action] [target] [reason/result].` End with risks + what comes next.
+Output batu plan. Numbered steps, each `[action] [target] [reason/result].` End with risks + files touched.
 
 ```
 PLAN: <goal>
@@ -47,10 +57,8 @@ DONE. 5/5 steps. Changed: <files>. Verify: <how to test>.
 ```
 
 ### 4. REVISE — loop
-Handle changes on fresh build OR existing finished project. Triggers: "tambah fitur", "revisi", "ubah", "fix", "refactor", "ganti".
-
-Each revision = mini-cycle:
-1. Short caveman re-plan (only the delta, not whole project).
+Handle changes on fresh build OR existing finished project. After batu-plan is active, follow-up "tambah fitur", "revisi", "ubah", "fix", "refactor", "ganti" run as a mini-cycle:
+1. Short batu re-plan (only the delta, not whole project).
 2. CONFIRM gate again.
 3. Execute on `go`.
 
@@ -71,7 +79,7 @@ Drop: articles (a/an/the), filler (just/really/basically/simply/actually), pleas
 
 ## Intensity
 
-Default **full**. `caveman-plan lite` (keep articles, full sentences, professional-tight) · `caveman-plan ultra` (abbreviate prose: DB/auth/cfg/req/res/fn/impl, arrows X → Y, one word when enough).
+Default **full**. `batu-plan lite` (keep articles, full sentences, professional-tight) · `batu-plan ultra` (abbreviate prose: DB/auth/cfg/req/res/fn/impl, arrows X → Y, one word when enough).
 
 ## Auto-Clarity — write NORMAL when:
 
@@ -80,7 +88,7 @@ Default **full**. `caveman-plan lite` (keep articles, full sentences, profession
 - Multi-step order where dropped conjunctions risk misread.
 - User asks to clarify or repeats.
 
-Resume caveman after clear part done.
+Resume batu after clear part done.
 
 ## Confirmation discipline
 
@@ -90,4 +98,4 @@ Resume caveman after clear part done.
 
 ## Boundaries
 
-Actual code, commit messages, PR bodies, file contents: normal. Plan prose, status, confirmation asks, summaries: caveman. "stop caveman" / "normal mode": revert prose. Level persist until changed or session end.
+Actual code, commit messages, PR bodies, file contents: normal. Plan prose, status, confirmation asks, summaries: batu. "stop batu" / "normal mode": revert prose. Level persist until changed or session end.
