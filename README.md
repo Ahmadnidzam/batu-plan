@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="https://em-content.zobj.net/source/apple/391/rock_1faa8.png" width="100" />
+  <img src="assets/headline.png" alt="batu-plan — plan → confirm → execute → revise" width="100%" />
 </p>
-
-<h1 align="center">batu-plan</h1>
 
 <p align="center"><strong>why write many word when plan, build, fix need few</strong></p>
 
