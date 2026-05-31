@@ -40,8 +40,21 @@ Same plan. Less word. Brain still big.
 
 ## Requirements
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (or any agent that loads `~/.claude/skills/`)
-- Node.js ≥ 18 (only if you use the install script)
+- One of the [supported agents](#supported-agents) below
+- `curl`/`wget` (bash) or PowerShell 5.1+ (Windows) for the install script
+
+## Supported agents
+
+The installer auto-detects which agents you have and drops the skill in each one's native format — Agent-Skills file, rule file, or a marker-fenced block in a shared instructions file. Absent agents are skipped.
+
+| Agent | Format | Scope |
+|---|---|---|
+| Claude Code · Gemini CLI · OpenCode · Goose · Crush · Kiro · Junie · Qwen · Forge · OpenClaw · Droid | `SKILL.md` | global |
+| Windsurf · Cursor | rule file | global |
+| Codex | `AGENTS.md` block | global |
+| Cursor · Cline · Roo Code · Kilo Code · Windsurf · Copilot · Codex | rule / instructions | project (run installer inside the repo) |
+
+Other agents: copy `SKILL.md` (or `rules.md`) into that agent's skills/rules location manually. Adding a new agent to the installer is one line.
 
 ## Recommended companion — caveman
 
