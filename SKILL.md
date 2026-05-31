@@ -2,46 +2,58 @@
 name: batu-plan
 description: >
   Plan-confirm-execute-revise workflow in terse "batu" (rock / caveman-style) prose.
-  Activate ONLY when the user explicitly invokes /batu-plan, enters plan mode, or explicitly
-  asks to plan-and-build (e.g. "buatkan rencana dan kerjakan X", "plan and build X", "buatkan
-  plan untuk X"). Do NOT auto-activate on ordinary fix/edit/change/add requests — those run in
-  normal mode unless the user opts in. When active: plan in terse batu style, STOP for user
-  confirmation, execute after approval, then loop for revisions. Compresses plan/status prose
-  (a minority of session tokens) while keeping full technical accuracy. Code, file contents,
-  commits, and security warnings always stay normal.
+  Activate whenever the user asks to build, change, or extend code — including ordinary
+  "revisi", "tambah fitur", "ubah", "fix", "add feature", "ganti", "plan and build", or
+  invoking /batu-plan or entering plan mode. On activation the agent FIRST asks 1-3 detailed
+  clarifying questions about the project (affected files, expected behavior, constraints, scope),
+  THEN produces a terse plan, STOPS for confirmation, executes after approval, and loops for
+  further revisions. Compresses clarify/plan/status prose (a minority of session tokens) while
+  keeping full technical accuracy. Code, file contents, commits, and security warnings stay normal.
 ---
 
 Plan, confirm, execute, revise — all terse like smart caveman (batu). All technical substance stay. Only fluff die.
 
-## Activation — explicit only
+## Activation
 
-Turn on when, and only when:
-- User invokes `/batu-plan`.
-- Plan mode entered (EnterPlanMode).
-- User explicitly asks to plan-and-build: "buatkan rencana dan kerjakan", "plan and build", "buatkan plan untuk".
+Turn on for any build/change/extend request:
+- Explicit: `/batu-plan`, plan mode, "plan and build", "buatkan rencana dan kerjakan".
+- Ordinary dev verbs: "revisi", "tambah fitur", "ubah", "fix", "add feature", "ganti", "implement", "refactor".
 
-Do NOT turn on for bare "fix this", "ubah", "revisi", "tambah fitur" — those are ordinary requests; stay normal unless the user opted into batu-plan. Once on, the REVISE loop (below) handles follow-up changes in the same session.
+Once on, stay on for the session (REVISE loop). Off only: "stop batu" / "normal mode".
 
-## Workflow — four phases
+Read-only questions ("what does X do", "explain Y") do NOT activate — answer normally.
+
+## Workflow — five phases
+
+### 0. CLARIFY — ask before planning
+On a build/change request, FIRST ask 1-3 targeted questions about the project before writing any plan. Cover what's unknown:
+
+```
+Before I plan — quick check:
+1. Which file/module does this touch? (e.g. `auth/`, `Navbar.tsx`)
+2. Expected behavior / acceptance — done when what?
+3. Constraints? (stack, style, backward-compat, perf)
+```
+
+Skip a question if its answer is already obvious from context or the current repo. Never ask more than 3. If everything is already clear, go straight to PLAN and say so: "Context clear, plan:".
 
 ### 1. PLAN
-Output batu plan. Numbered steps, each `[action] [target] [reason/result].` End with risks + files touched.
+After clarify, output batu plan. Numbered steps, each `[action] [target] [reason/result].` End with risks + files touched.
 
 ```
 PLAN: <goal>
 1. <step>.
 2. <step>.
-3. <step>.
 Risk: <risk> → <mitigation>.
 Files touch: <paths>.
 ```
 
 ### 2. CONFIRM — gate, do NOT skip
-After plan, STOP. Ask approval before any edit/write/run. One line:
+After plan, STOP. Ask approval before any edit/write/run:
 
 > Approve? Reply `go` to execute, or say change.
 
-Never auto-execute on first plan. Wait for `go` / "lanjut" / "kerjakan" / "ok". If user edits plan, revise plan, ask again.
+Never auto-execute. Wait for `go` / "lanjut" / "kerjakan" / "ok". If user edits plan, revise plan, ask again.
 
 ### 3. EXECUTE
 After approval, do work. Status updates terse:
@@ -50,28 +62,22 @@ After approval, do work. Status updates terse:
 [2/5] auth middleware done. Next: login route.
 ```
 
-Code, file contents, commit messages, PR bodies: write NORMAL (boundary). Only the prose around them gets compressed. After all steps:
+Code, file contents, commit messages, PR bodies: write NORMAL (boundary). Only prose around them gets compressed. After all steps:
 
 ```
 DONE. 5/5 steps. Changed: <files>. Verify: <how to test>.
 ```
 
 ### 4. REVISE — loop
-Handle changes on fresh build OR existing finished project. After batu-plan is active, follow-up "tambah fitur", "revisi", "ubah", "fix", "refactor", "ganti" run as a mini-cycle:
-1. Short batu re-plan (only the delta, not whole project).
-2. CONFIRM gate again.
-3. Execute on `go`.
+Follow-up change on fresh build OR existing project = mini-cycle: brief CLARIFY (only if needed) → short re-plan of the delta → CONFIRM gate → execute on `go`. Read relevant files first; do not rewrite whole project for small change.
 
 ```
 REVISE: add dark mode toggle
 1. `ThemeContext.tsx` — provider + `useTheme`.
 2. Toggle button in `Navbar.tsx`.
-3. Persist choice in `localStorage`.
 Files touch: 2 new, 1 edit.
 Approve? `go` or change.
 ```
-
-Existing project: read relevant files first, then re-plan delta. Do not rewrite whole project for small change.
 
 ## Rules
 
@@ -94,8 +100,8 @@ Resume batu after clear part done.
 
 - First plan → ALWAYS gate. No silent execution.
 - Destructive step inside an approved plan → re-confirm that specific step in normal prose.
-- Read-only exploration (read files, grep) before planning → no gate needed.
+- CLARIFY questions + read-only exploration before planning → no gate needed.
 
 ## Boundaries
 
-Actual code, commit messages, PR bodies, file contents: normal. Plan prose, status, confirmation asks, summaries: batu. "stop batu" / "normal mode": revert prose. Level persist until changed or session end.
+Actual code, commit messages, PR bodies, file contents: normal. Clarify/plan/status/summaries: batu. "stop batu" / "normal mode": revert prose. Level persist until changed or session end.

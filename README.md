@@ -39,15 +39,18 @@ Terse style persists across every phase. Code, commits, and security warnings al
 
 > **Scope of the saving.** batu-plan compresses **planning/status prose only** — a *minority* of a real build session's tokens. File reads, diffs, and tool I/O usually dominate, and the skill text itself adds a little input cost each session. Expect ~70% off the plan-prose slice, not off your whole bill. The win is mostly **readability + speed**; cost is a bonus.
 
-## Activation — explicit, by design
+## Activation
 
-batu-plan turns on **only** when you opt in:
+batu-plan turns on for **any build / change / extend request** so its terse style and the plan-gate apply by default:
 
-- you invoke `/batu-plan`, **or**
-- you enter plan mode, **or**
-- you explicitly ask to plan-and-build ("buatkan rencana dan kerjakan X", "plan and build X").
+- ordinary dev verbs — "revisi", "tambah fitur", "ubah", "fix", "add feature", "ganti", "implement", "refactor"
+- explicit — `/batu-plan`, plan mode, "plan and build", "buatkan rencana dan kerjakan X"
 
-It does **not** hijack ordinary "fix this" / "ubah" / "revisi" requests. Once active, the REVISE loop handles follow-up changes in the same session.
+Read-only questions ("what does X do", "explain Y") do **not** activate — answered normally. Turn off with "stop batu" / "normal mode".
+
+On activation it runs a **CLARIFY** step first: 1-3 targeted questions about the project (which file/module, expected behavior, constraints, scope) before producing a plan — skipped when the answer is already clear from context. Then PLAN → CONFIRM (`go`) → EXECUTE → REVISE loop. Nothing runs until you approve.
+
+> **Trade-off (be aware).** Activating on common dev verbs is broad by design — it makes the skill apply almost every coding turn, which is the point (consistent terseness + a gate). The cost is an upfront CLARIFY question on most requests. Say "normal mode" any time to opt out.
 
 ## Requirements
 

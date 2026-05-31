@@ -24,8 +24,8 @@ $Home_   = $env:USERPROFILE
 
 # Expected SHA-256 of fetched files. Installer aborts on mismatch. Defends a
 # CDN/network tamper while this script is intact; NOT a full repo compromise.
-$ShaSkill = "696045facad3460093f8d6b7610beef8eb0350459e1c679240bc0d987c85f5f8"
-$ShaRules = "5d1bd4d182e4d54c4950f003de7634e3037e14dd35795fc1f7625115d9f0d203"
+$ShaSkill = "6726263c23a1178a513a72500a8db35c15a73475c719a910f08efde94a5e25d5"
+$ShaRules = "626c588856a48d3ede8b9423de463ee0385377c53b031d4fdab9de88015539f4"
 
 $Tmp = Join-Path $env:TEMP ("batu-plan-" + [guid]::NewGuid().ToString("N").Substring(0,8))
 New-Item -ItemType Directory -Force -Path $Tmp | Out-Null
