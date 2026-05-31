@@ -89,6 +89,28 @@ cp SKILL.md ~/.claude/skills/caveman-plan/SKILL.md
 
 Restart Claude Code (or start a new session) so the skill registers.
 
+### Flags
+
+| Flag (bash / PowerShell) | Effect |
+|---|---|
+| `--project` / `-Project` | Also write into the **current directory's** project agent files (Cursor/Cline/Roo/Kilo/Windsurf/Copilot/Codex). Off by default — global agents only. |
+| `--local` / `-Local` | Use `./SKILL.md` + `./rules.md` from the current directory instead of downloading (skips integrity check). Only trusted dirs. |
+
+```bash
+# global + project agents in this repo
+curl -fsSL .../install.sh | bash -s -- --project
+```
+
+### Integrity
+
+The installer downloads `SKILL.md` + `rules.md` and **verifies their SHA-256** against hashes embedded in the script before writing anything — a tampered CDN/repo aborts the install. For a fully reproducible install, pin to a commit:
+
+```bash
+CAVEMAN_PLAN_REF=<commit-sha> curl -fsSL https://raw.githubusercontent.com/Ahmadnidzam/caveman-plan/<commit-sha>/install.sh | bash
+```
+
+Always read a `curl | bash` / `irm | iex` script before running it.
+
 ## Usage
 
 | Action | How |

@@ -1,23 +1,51 @@
 # caveman-plan multi-agent installer (soft caveman prerequisite) — Windows PowerShell 5.1+
+#
+# Flags:
+#   -Project   also write into the CURRENT directory's project agent files. Off by default.
+#   -Local     use .\SKILL.md and .\rules.md from CWD instead of downloading.
+param(
+  [switch]$Project,
+  [switch]$Local
+)
 $ErrorActionPreference = "Stop"
 
-$RepoRaw = "https://raw.githubusercontent.com/Ahmadnidzam/caveman-plan/main"
+$Ref     = if ($env:CAVEMAN_PLAN_REF) { $env:CAVEMAN_PLAN_REF } else { "main" }
+$RepoRaw = "https://raw.githubusercontent.com/Ahmadnidzam/caveman-plan/$Ref"
 $Home_   = $env:USERPROFILE
-$Tmp     = Join-Path $env:TEMP ("caveman-plan-" + [guid]::NewGuid().ToString("N").Substring(0,8))
+
+# Expected SHA-256 of fetched files. Installer aborts on mismatch.
+$ShaSkill = "0bb7881985093b6fb3696132b49f13c0ff40144207dd062382070a1024f77fb9"
+$ShaRules = "bddbc444e9bee00234d78632671b07d338198148504b9205030722ccc2b2b6e2"
+
+$Tmp = Join-Path $env:TEMP ("caveman-plan-" + [guid]::NewGuid().ToString("N").Substring(0,8))
 New-Item -ItemType Directory -Force -Path $Tmp | Out-Null
 
 Write-Host "caveman-plan installer (multi-agent)" -ForegroundColor Yellow
 Write-Host ""
 
-# --- fetch content (prefer local, else download) ---
-function Get-Content-File($name) {
+$Utf8NoBom = New-Object System.Text.UTF8Encoding $false
+function Write-Text($path, $text) { [IO.File]::WriteAllText($path, $text, $Utf8NoBom) }
+
+function Fetch($name, $expectedSha) {
   $dest = Join-Path $Tmp $name
-  if (Test-Path ".\$name") { Copy-Item ".\$name" $dest -Force }
-  else { Invoke-RestMethod "$RepoRaw/$name" -OutFile $dest }
+  if ($Local -and (Test-Path ".\$name")) {
+    Copy-Item ".\$name" $dest -Force
+    Write-Host "  i using local .\$name (-Local; integrity check skipped)"
+    return $dest
+  }
+  Invoke-RestMethod "$RepoRaw/$name" -OutFile $dest
+  $got = (Get-FileHash $dest -Algorithm SHA256).Hash.ToLower()
+  if ($got -ne $expectedSha) {
+    Write-Host "x integrity check FAILED for $name" -ForegroundColor Red
+    Write-Host "  expected $expectedSha"
+    Write-Host "  got      $got"
+    Remove-Item $Tmp -Recurse -Force -ErrorAction SilentlyContinue
+    exit 1
+  }
   return $dest
 }
-$SkillSrc = Get-Content-File "SKILL.md"
-$RuleSrc  = Get-Content-File "rules.md"
+$SkillSrc = Fetch "SKILL.md" $ShaSkill
+$RuleSrc  = Fetch "rules.md" $ShaRules
 
 $script:Installed = 0
 $MarkStart = "<!-- caveman-plan:start -->"
@@ -45,15 +73,15 @@ function Install-Rule($label, $detect, $destFile) {
 function Install-Append($label, $detect, $destFile) {
   if (Test-Path $detect) {
     New-Item -ItemType Directory -Force -Path (Split-Path $destFile) | Out-Null
-    if (-not (Test-Path $destFile)) { New-Item -ItemType File -Path $destFile | Out-Null }
-    $body = Get-Content $destFile -Raw -ErrorAction SilentlyContinue
+    $body = ""
+    if (Test-Path $destFile) { $body = [IO.File]::ReadAllText($destFile) }
     if ($body -and $body.Contains($MarkStart)) {
       $pattern = [regex]::Escape($MarkStart) + "[\s\S]*?" + [regex]::Escape($MarkEnd)
       $body = [regex]::Replace($body, $pattern, "").TrimEnd()
-      Set-Content $destFile $body -Encoding utf8
     }
-    $rule = Get-Content $RuleSrc -Raw
-    Add-Content $destFile "`n$MarkStart`n$rule`n$MarkEnd" -Encoding utf8
+    $rule = [IO.File]::ReadAllText($RuleSrc)
+    $out  = ($body.TrimEnd() + "`n`n" + $MarkStart + "`n" + $rule + "`n" + $MarkEnd + "`n")
+    Write-Text $destFile $out
     Write-Host "  OK  $label  -> $destFile" -ForegroundColor Green
     $script:Installed++
   }
@@ -92,15 +120,19 @@ Install-Rule "Cursor (global)" (Join-Path $Home_ ".cursor")           (Join-Path
 # --- Shared instructions file (global, append) ---
 Install-Append "Codex (global)" (Join-Path $Home_ ".codex") (Join-Path $Home_ ".codex\AGENTS.md")
 
-# --- Project-scoped (only if marker present in CWD) ---
-Write-Host "Scanning current project ($PWD)..."
-Install-Rule   "Cursor (project)"   ".\.cursor"    ".\.cursor\rules\caveman-plan.mdc"
-Install-Rule   "Cline"              ".\.clinerules" ".\.clinerules\caveman-plan.md"
-Install-Rule   "Roo Code"           ".\.roo"       ".\.roo\rules\caveman-plan.md"
-Install-Rule   "Kilo Code"          ".\.kilocode"  ".\.kilocode\rules\caveman-plan.md"
-Install-Rule   "Windsurf (project)" ".\.windsurf"  ".\.windsurf\rules\caveman-plan.md"
-Install-Append "Copilot (project)"  ".\.github"    ".\.github\copilot-instructions.md"
-Install-Append "Codex (project)"    ".\AGENTS.md"  ".\AGENTS.md"
+# --- Project-scoped (opt-in via -Project) ---
+if ($Project) {
+  Write-Host "Scanning current project ($PWD)... (-Project)"
+  Install-Rule   "Cursor (project)"   ".\.cursor"    ".\.cursor\rules\caveman-plan.mdc"
+  Install-Rule   "Cline"              ".\.clinerules" ".\.clinerules\caveman-plan.md"
+  Install-Rule   "Roo Code"           ".\.roo"       ".\.roo\rules\caveman-plan.md"
+  Install-Rule   "Kilo Code"          ".\.kilocode"  ".\.kilocode\rules\caveman-plan.md"
+  Install-Rule   "Windsurf (project)" ".\.windsurf"  ".\.windsurf\rules\caveman-plan.md"
+  Install-Append "Copilot (project)"  ".\.github"    ".\.github\copilot-instructions.md"
+  Install-Append "Codex (project)"    ".\AGENTS.md"  ".\AGENTS.md"
+} else {
+  Write-Host "  i  project files skipped (pass -Project to write into the current repo)"
+}
 
 Remove-Item $Tmp -Recurse -Force -ErrorAction SilentlyContinue
 Write-Host ""
